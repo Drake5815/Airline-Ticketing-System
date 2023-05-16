@@ -2,7 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package atts;
+package airline_ticketing_system;
+
+import airline_ticketing_system.Code.Connect;
+import airline_ticketing_system.Code.User;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,17 +19,19 @@ public class RegisterWindow {
         private Color red = new Color(255,0,0);
 	private Color white = new Color(255,255,255);
 	
-	private ButtonGroup gender = new ButtonGroup();
-	
 	private JFrame frmAirlineTransportationTicketing;
-	private JTextField textField;
-	private JPasswordField passwordField;
-	private JPasswordField passwordField_1;
-	private JButton btnNewButton;
+	private JPasswordField pfPassword;
+	private JPasswordField pscPassword;
+	private JButton RegitserBttn;
 	private JLabel lblPassword;
 	private JLabel lblEmail;
 	private JLabel lblRegister;
 
+        private RoundJTextField tfEmail;
+        private RoundJTextField jUsername;
+        private RoundJTextField tfcEmail;
+        
+        Connect conn =null;
 	/**
 	 * Launch the application.
 	 */
@@ -47,6 +53,7 @@ public class RegisterWindow {
 	 */
 	public RegisterWindow() {
 		initialize();
+                conn = new Connect();
 	}
 
 	/**
@@ -62,30 +69,30 @@ public class RegisterWindow {
 		frmAirlineTransportationTicketing.setResizable(false);
 		frmAirlineTransportationTicketing.getContentPane().setLayout(null);
 		
-		textField = new RoundJTextField();
-		textField.setBounds(100, 314, 300, 20);
-		frmAirlineTransportationTicketing.getContentPane().add(textField);
-		textField.setColumns(10);
+		tfEmail = new RoundJTextField();
+		tfEmail.setBounds(100, 314, 300, 20);
+		frmAirlineTransportationTicketing.getContentPane().add(tfEmail);
+		tfEmail.setColumns(10);
 		
-		passwordField = new RoundJPassField();
-		passwordField.setBounds(100, 202, 300, 20);
-		frmAirlineTransportationTicketing.getContentPane().add(passwordField);
+		pfPassword = new RoundJPassField();
+		pfPassword.setBounds(100, 202, 300, 20);
+		frmAirlineTransportationTicketing.getContentPane().add(pfPassword);
 		
-		passwordField_1 = new RoundJPassField();
-		passwordField_1.setBounds(100, 258, 300, 20);
-		frmAirlineTransportationTicketing.getContentPane().add(passwordField_1);
+		pscPassword = new RoundJPassField();
+		pscPassword.setBounds(100, 258, 300, 20);
+		frmAirlineTransportationTicketing.getContentPane().add(pscPassword);
 		
-		btnNewButton = new RoundJButton("Register");
-		btnNewButton.addActionListener(new ActionListener() {
+		RegitserBttn = new RoundJButton("Register");
+		RegitserBttn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+				Registration();
 			}
 		});
-		btnNewButton.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 14));
-		btnNewButton.setBackground(new Color(0, 128, 192));
-		btnNewButton.setForeground(new Color(0, 0, 0));
-		btnNewButton.setBounds(191, 420, 100, 25);
-		frmAirlineTransportationTicketing.getContentPane().add(btnNewButton);
+		RegitserBttn.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 14));
+		RegitserBttn.setBackground(new Color(0, 128, 192));
+		RegitserBttn.setForeground(new Color(0, 0, 0));
+		RegitserBttn.setBounds(191, 420, 100, 25);
+		frmAirlineTransportationTicketing.getContentPane().add(RegitserBttn);
 		
 		JLabel ConfirmPass = new JLabel("Confirm Password:");
 		ConfirmPass.setFont(new Font("Microsoft JhengHei UI", Font.BOLD, 16));
@@ -107,24 +114,6 @@ public class RegisterWindow {
 		lblRegister.setBounds(165, 50, 170, 35);
 		frmAirlineTransportationTicketing.getContentPane().add(lblRegister);
 		
-		JRadioButton rdbtnNewRadioButton = new JRadioButton("Male");
-		rdbtnNewRadioButton.setSelected(true);
-		rdbtnNewRadioButton.setBounds(100, 371, 109, 23);
-		rdbtnNewRadioButton.setBackground(white);
-		gender.add(rdbtnNewRadioButton);
-		frmAirlineTransportationTicketing.getContentPane().add(rdbtnNewRadioButton);
-		
-		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("Female");
-		rdbtnNewRadioButton_1.setBounds(211, 371, 109, 23);
-		rdbtnNewRadioButton_1.setBackground(white);
-		gender.add(rdbtnNewRadioButton_1);
-		frmAirlineTransportationTicketing.getContentPane().add(rdbtnNewRadioButton_1);
-		
-		JLabel lblGre = new JLabel("Gender:");
-		lblGre.setFont(new Font("Microsoft JhengHei UI", Font.BOLD, 16));
-		lblGre.setBounds(100, 341, 144, 14);
-		frmAirlineTransportationTicketing.getContentPane().add(lblGre);
-		
 		JPanel panel = new JPanel();
 		panel.setBorder(null);
 		panel.setBounds(0, 0, 484, 110);
@@ -136,10 +125,20 @@ public class RegisterWindow {
 		lblUsername.setBounds(100, 121, 144, 14);
 		frmAirlineTransportationTicketing.getContentPane().add(lblUsername);
 		
-		RoundJTextField textField_1 = new RoundJTextField();
-		textField_1.setColumns(10);
-		textField_1.setBounds(100, 146, 300, 20);
-		frmAirlineTransportationTicketing.getContentPane().add(textField_1);
+		jUsername = new RoundJTextField();
+		jUsername.setColumns(10);
+		jUsername.setBounds(100, 146, 300, 20);
+		frmAirlineTransportationTicketing.getContentPane().add(jUsername);
+		
+		JLabel lblConfirmEmail = new JLabel("Confirm E-Mail:");
+		lblConfirmEmail.setFont(new Font("Microsoft JhengHei UI", Font.BOLD, 16));
+		lblConfirmEmail.setBounds(100, 345, 144, 14);
+		frmAirlineTransportationTicketing.getContentPane().add(lblConfirmEmail);
+		
+		tfcEmail = new RoundJTextField();
+		tfcEmail.setColumns(10);
+		tfcEmail.setBounds(100, 370, 300, 20);
+		frmAirlineTransportationTicketing.getContentPane().add(tfcEmail);
 	}
 	
 	//Methodss
@@ -147,4 +146,32 @@ public class RegisterWindow {
 		// TODO Auto-generated method stub
 		frmAirlineTransportationTicketing.setVisible(b);
 	}
+        public boolean check(){
+            return jUsername.getText().isEmpty()==false ||pfPassword.getText().isEmpty()==false || tfEmail.getText().isEmpty()==false;
+        }
+        public boolean Confirmatoin(){
+            if(pfPassword == pscPassword){
+                return true;
+            }else {
+                JOptionPane.showMessageDialog(this.frmAirlineTransportationTicketing, "Password does not match");
+            } 
+            
+            if(tfEmail == tfcEmail)
+                return true;
+            else 
+                JOptionPane.showMessageDialog(this.frmAirlineTransportationTicketing, "Email does not match");
+            
+            return false;
+        }
+        
+        public void Registration(){
+           if(check()==true ){
+            User user = new User(jUsername.getText(),pfPassword.getText(), tfEmail.getText());
+            if(conn.registerUser(user))
+                JOptionPane.showMessageDialog(this.frmAirlineTransportationTicketing, "New record added");
+            else
+                JOptionPane.showMessageDialog(this.frmAirlineTransportationTicketing, "Username already existing");
+        }else
+            JOptionPane.showMessageDialog(this.frmAirlineTransportationTicketing, "All fields are required.");
+        }
 }
