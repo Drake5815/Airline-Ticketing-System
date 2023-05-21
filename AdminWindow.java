@@ -7,7 +7,6 @@ package airline_ticketing_system;
 import airline_ticketing_system.Code.Connect;
 import airline_ticketing_system.Code.Flight;
 
-
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
@@ -16,11 +15,29 @@ import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.JLabel;
 import java.awt.Font;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.JPanel;
+import java.awt.Color;
+import javax.swing.JTextField;
+import javax.swing.JList;
+import javax.swing.JButton;
 import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
+import com.toedter.calendar.JMonthChooser;
+import com.toedter.calendar.JDateChooser;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.table.DefaultTableModel;
+
+import java.sql.*;
+import javax.swing.table.AbstractTableModel;
 /**
  *
  * @author Engilo Grave
@@ -28,17 +45,31 @@ import javax.swing.border.LineBorder;
 public class AdminWindow {
     
 	private JFrame frmAirline;
-	private JTable tblWaitingVerificaiton;
-	private JTextField JTF_FlightID;
-	private JTextField JTF_Departure;
-	private JTextField JTF_Arrival;
-	private JTextField JTF_TicketPrice;
-	private JTextField JTF_Airline;
-	private JTextField JTF_Status;
-	private JTextField JTF_SeatsAvailable;
-	private JTable tblDeleteFlight;
-
-	/**
+        
+	private JTable VerifySearch;
+	private JTable FlightTable;
+        
+	private JTextField tfSearchFlight;
+        private JTextField textField;
+	private JTextField tfAirline;
+	private JTextField tfFlightID;
+	private JTextField tfDeparture;
+	private JTextField tfArrival;
+	private JTextField tfTicketPrice;
+	private JTextField tfStatus;
+	private JTextField tfSeats;
+        
+        private JDateChooser DepartureDate;
+        private JDateChooser ArrivalDate;
+        
+        private ArrayList<Flight> flight;
+        private DefaultTableModel tbl;
+        
+        private int Status = 0;
+	
+        private ResetPass rp;
+        
+        /**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
@@ -60,181 +91,253 @@ public class AdminWindow {
 	public AdminWindow() {
 		initialize();
                 conn = new Connect();
+                display();
+                displayFlight();
 	}
 
+        public AdminWindow(String s){}
+        
 	/**
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frmAirline = new JFrame();
+		frmAirline =  new JFrame();
 		frmAirline.setResizable(false);
 		frmAirline.setTitle("Airline Transportation Ticketing System");
-		frmAirline.setBounds(100, 100, 700, 508);
+		frmAirline.setBounds(100, 100, 650, 500);
 		frmAirline.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmAirline.setIconImage(Toolkit.getDefaultToolkit().getImage("C:\\Users\\Engilo Grave\\Desktop\\ATTS\\Logo.png"));
 		frmAirline.getContentPane().setLayout(null);
 		
-		tblWaitingVerificaiton = new JTable();
-		tblWaitingVerificaiton.setBorder(new LineBorder(new Color(0, 0, 0)));
-		tblWaitingVerificaiton.setBounds(10, 79, 310, 150);
-		frmAirline.getContentPane().add(tblWaitingVerificaiton);
+		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setBounds(10, 50, 614, 400);
+		frmAirline.getContentPane().add(tabbedPane);
 		
-		JLabel lblNewLabel = new JLabel("Adminstration");
-		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNewLabel.setVerticalAlignment(SwingConstants.BOTTOM);
-		lblNewLabel.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 20));
-		lblNewLabel.setBounds(200, 11, 250, 30);
+		JPanel pnl_NewFlight = new JPanel();
+		tabbedPane.addTab("Add New Flight", null, pnl_NewFlight, null);
+		pnl_NewFlight.setLayout(null);
+		
+		JLabel lblAirline = new JLabel("Airline:");
+		lblAirline.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		lblAirline.setBounds(10, 11, 60, 14);
+		pnl_NewFlight.add(lblAirline);
+		
+		JLabel lblFlightID = new JLabel("FlightID:");
+		lblFlightID.setFont(new Font("Microsoft PhagsPa", Font.BOLD, 15));
+		lblFlightID.setBounds(10, 42, 60, 14);
+		pnl_NewFlight.add(lblFlightID);
+		
+		JLabel lblDeparture = new JLabel("Departure:");
+		lblDeparture.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		lblDeparture.setBounds(10, 73, 75, 14);
+		pnl_NewFlight.add(lblDeparture);
+		
+		JLabel lblArrival = new JLabel("Arrival:");
+		lblArrival.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		lblArrival.setBounds(10, 104, 75, 14);
+		pnl_NewFlight.add(lblArrival);
+		
+		JLabel lblTicketPrice = new JLabel("Ticket Price:");
+		lblTicketPrice.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		lblTicketPrice.setBounds(10, 138, 90, 14);
+		pnl_NewFlight.add(lblTicketPrice);
+		
+		JLabel lblStatus = new JLabel("Status:");
+		lblStatus.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		lblStatus.setBounds(10, 166, 90, 14);
+		pnl_NewFlight.add(lblStatus);
+		
+		JLabel lblSeats = new JLabel("Seats Available:");
+		lblSeats.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		lblSeats.setBounds(10, 197, 115, 14);
+		pnl_NewFlight.add(lblSeats);
+		
+		tfAirline = new JTextField();
+		tfAirline.setBounds(135, 8, 86, 20);
+		pnl_NewFlight.add(tfAirline);
+		tfAirline.setColumns(10);
+		
+		tfFlightID = new JTextField();
+		tfFlightID.setBounds(135, 39, 86, 20);
+		pnl_NewFlight.add(tfFlightID);
+		tfFlightID.setColumns(10);
+		
+		tfDeparture = new JTextField();
+		tfDeparture.setBounds(135, 70, 86, 20);
+		pnl_NewFlight.add(tfDeparture);
+		tfDeparture.setColumns(10);
+		
+		tfArrival = new JTextField();
+		tfArrival.setBounds(135, 101, 86, 20);
+		pnl_NewFlight.add(tfArrival);
+		tfArrival.setColumns(10);
+		
+		tfTicketPrice = new JTextField();
+		tfTicketPrice.setBounds(135, 135, 86, 20);
+		pnl_NewFlight.add(tfTicketPrice);
+		tfTicketPrice.setColumns(10);
+		
+		tfStatus = new JTextField();
+		tfStatus.setBounds(135, 163, 86, 20);
+		pnl_NewFlight.add(tfStatus);
+		tfStatus.setColumns(10);
+		
+		tfSeats = new JTextField();
+		tfSeats.setBounds(135, 194, 86, 20);
+		pnl_NewFlight.add(tfSeats);
+		tfSeats.setColumns(10);
+		
+		JLabel lblFlightDepartureDate = new JLabel("Flight Departure Date:");
+		lblFlightDepartureDate.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		lblFlightDepartureDate.setBounds(280, 11, 160, 14);
+		pnl_NewFlight.add(lblFlightDepartureDate);
+		
+		DepartureDate = new JDateChooser();
+		DepartureDate.setBounds(450, 5, 125, 20);
+		pnl_NewFlight.add(DepartureDate);
+		
+		JLabel lblFlightArrivalDate = new JLabel("Flight Arrival Date:");
+		lblFlightArrivalDate.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		lblFlightArrivalDate.setBounds(280, 42, 160, 14);
+		pnl_NewFlight.add(lblFlightArrivalDate);
+		
+		ArrivalDate = new JDateChooser();
+		ArrivalDate.setBounds(450, 36, 125, 20);
+		pnl_NewFlight.add(ArrivalDate);
+		
+		JButton AddFlight = new JButton("Add Flight");
+		AddFlight.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
+		AddFlight.setBounds(207, 321, 200, 40);
+		AddFlight.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+                                if(getDay(DepartureDate) > getDay(ArrivalDate)){
+                                    JOptionPane.showMessageDialog(frmAirline, "Error");
+                                } else {
+                                    AddFlight();
+                                }
+                                Reset();
+			}
+		});
+                pnl_NewFlight.add(AddFlight);
+		
+		JPanel pnlDeleteFlight = new JPanel();
+		tabbedPane.addTab("Delete Flight", null, pnlDeleteFlight, null);
+		pnlDeleteFlight.setLayout(null);
+		
+		FlightTable = new JTable();
+		FlightTable.setBounds(10, 11, 589, 350);
+                FlightTable.setModel(new DefaultTableModel(
+                        new Object[][]{},new String[]{"Ariline","Departure Time","Departure","Arrival"}
+                ){
+                    boolean[] canEdit = new boolean [] {
+                        false, false, false, false
+                    };
+                    public boolean isCellEditable(int rowIndex, int columnIndex){
+                        return canEdit [columnIndex];
+                    }
+                });
+                FlightTable.addMouseListener(new MouseAdapter(){
+                    public void mouseClicked(MouseEvent evt){
+                        FlightTableMouseClicked(evt);
+                    }
+                });
+		pnlDeleteFlight.add(FlightTable);
+		
+		JLabel lblNewLabel = new JLabel("ADMINISTRATION");
+		lblNewLabel.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 16));
+		lblNewLabel.setBounds(247, 11, 139, 14);
 		frmAirline.getContentPane().add(lblNewLabel);
-		
-		JPanel panel = new JPanel();
-		panel.setBackground(new Color(0, 0, 0));
-		panel.setBorder(null);
-		panel.setBounds(10, 240, 320, 2);
-		frmAirline.getContentPane().add(panel);
-		
-		JLabel lblInsertFlight = new JLabel("Insert Flight");
-		lblInsertFlight.setVerticalAlignment(SwingConstants.BOTTOM);
-		lblInsertFlight.setHorizontalAlignment(SwingConstants.CENTER);
-		lblInsertFlight.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 20));
-		lblInsertFlight.setBounds(330, 67, 132, 30);
-		frmAirline.getContentPane().add(lblInsertFlight);
-		
-		JLabel lblRoute = new JLabel("Route:");
-		lblRoute.setVerticalAlignment(SwingConstants.BOTTOM);
-		lblRoute.setHorizontalAlignment(SwingConstants.CENTER);
-		lblRoute.setFont(new Font("Microsoft New Tai Lue", Font.PLAIN, 16));
-		lblRoute.setBounds(340, 97, 54, 22);
-		frmAirline.getContentPane().add(lblRoute);
-		
-		JLabel FlightID = new JLabel("FlightID:");
-		FlightID.setVerticalAlignment(SwingConstants.BOTTOM);
-		FlightID.setHorizontalAlignment(SwingConstants.LEFT);
-		FlightID.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		FlightID.setBounds(371, 160, 90, 22);
-		frmAirline.getContentPane().add(FlightID);
-		
-		JLabel FlightDestination = new JLabel("Depature:");
-		FlightDestination.setVerticalAlignment(SwingConstants.BOTTOM);
-		FlightDestination.setHorizontalAlignment(SwingConstants.LEFT);
-		FlightDestination.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		FlightDestination.setBounds(371, 190, 90, 22);
-		frmAirline.getContentPane().add(FlightDestination);
-		
-		JLabel FlightArrival = new JLabel("Arrival:");
-		FlightArrival.setVerticalAlignment(SwingConstants.BOTTOM);
-		FlightArrival.setHorizontalAlignment(SwingConstants.LEFT);
-		FlightArrival.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		FlightArrival.setBounds(371, 220, 90, 22);
-		frmAirline.getContentPane().add(FlightArrival);
-		
-		JLabel TicketPrice = new JLabel("Ticket Price:");
-		TicketPrice.setVerticalAlignment(SwingConstants.BOTTOM);
-		TicketPrice.setHorizontalAlignment(SwingConstants.LEFT);
-		TicketPrice.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		TicketPrice.setBounds(371, 250, 90, 22);
-		frmAirline.getContentPane().add(TicketPrice);
-		
-		JLabel Airline = new JLabel("Airline:");
-		Airline.setVerticalAlignment(SwingConstants.BOTTOM);
-		Airline.setHorizontalAlignment(SwingConstants.LEFT);
-		Airline.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		Airline.setBounds(371, 130, 90, 22);
-		frmAirline.getContentPane().add(Airline);
-		
-		JTF_FlightID = new JTextField();
-		JTF_FlightID.setBounds(492, 160, 130
-				, 20);
-		frmAirline.getContentPane().add(JTF_FlightID);
-		JTF_FlightID.setColumns(10);
-		
-		JTF_Departure = new JTextField();
-		JTF_Departure.setColumns(10);
-		JTF_Departure.setBounds(492, 190, 130, 20);
-		frmAirline.getContentPane().add(JTF_Departure);
-		
-		JTF_Arrival = new JTextField();
-		JTF_Arrival.setColumns(10);
-		JTF_Arrival.setBounds(492, 220, 130, 20);
-		frmAirline.getContentPane().add(JTF_Arrival);
-		
-		JTF_TicketPrice = new JTextField();
-		JTF_TicketPrice.setColumns(10);
-		JTF_TicketPrice.setBounds(492, 250, 130, 20);
-		frmAirline.getContentPane().add(JTF_TicketPrice);
-		
-		JTF_Airline = new JTextField();
-		JTF_Airline.setColumns(10);
-		JTF_Airline.setBounds(492, 130, 130, 20);
-		frmAirline.getContentPane().add(JTF_Airline);
-		
-		JPanel panel_1_2 = new JPanel();
-		panel_1_2.setBorder(null);
-		panel_1_2.setBackground(Color.BLACK);
-		panel_1_2.setBounds(330, 67, 2, 391);
-		frmAirline.getContentPane().add(panel_1_2);
-		
-		JLabel Status = new JLabel("Status:");
-		Status.setVerticalAlignment(SwingConstants.BOTTOM);
-		Status.setHorizontalAlignment(SwingConstants.LEFT);
-		Status.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		Status.setBounds(371, 280, 120, 22);
-		frmAirline.getContentPane().add(Status);
-		
-		JLabel SeatsAvailable = new JLabel("Seats Available:");
-		SeatsAvailable.setVerticalAlignment(SwingConstants.BOTTOM);
-		SeatsAvailable.setHorizontalAlignment(SwingConstants.LEFT);
-		SeatsAvailable.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		SeatsAvailable.setBounds(371, 310, 111, 22);
-		frmAirline.getContentPane().add(SeatsAvailable);
-		
-		JTF_Status = new JTextField();
-		JTF_Status.setColumns(10);
-		JTF_Status.setBounds(492, 280, 130, 20);
-		frmAirline.getContentPane().add(JTF_Status);
-		
-		JTF_SeatsAvailable = new JTextField();
-		JTF_SeatsAvailable.setColumns(10);
-		JTF_SeatsAvailable.setBounds(492, 310, 130, 20);
-		frmAirline.getContentPane().add(JTF_SeatsAvailable);
-		
-		JPanel panel_1_3 = new JPanel();
-		panel_1_3.setBorder(null);
-		panel_1_3.setBackground(Color.BLACK);
-		panel_1_3.setBounds(200, 37, 230, 2);
-		frmAirline.getContentPane().add(panel_1_3);
-		
-		JButton AddFlightBtn = new JButton("ADD FLIGHT");
-		AddFlightBtn.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 12));
-		AddFlightBtn.setBounds(371, 400, 120, 25);
-		frmAirline.getContentPane().add(AddFlightBtn);
-		
-		tblDeleteFlight = new JTable();
-		tblDeleteFlight.setBorder(new LineBorder(new Color(0, 0, 0)));
-		tblDeleteFlight.setBounds(10, 282, 310, 150);
-		frmAirline.getContentPane().add(tblDeleteFlight);
-		
-		JLabel DeleteFlight = new JLabel("Delete Flight");
-		DeleteFlight.setVerticalAlignment(SwingConstants.BOTTOM);
-		DeleteFlight.setHorizontalAlignment(SwingConstants.LEFT);
-		DeleteFlight.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		DeleteFlight.setBounds(10, 253, 111, 22);
-		frmAirline.getContentPane().add(DeleteFlight);
-		
-		JLabel Verification = new JLabel("Waiting Verification ");
-		Verification.setVerticalAlignment(SwingConstants.BOTTOM);
-		Verification.setHorizontalAlignment(SwingConstants.LEFT);
-		Verification.setFont(new Font("Microsoft New Tai Lue", Font.BOLD, 15));
-		Verification.setBounds(10, 46, 150, 22);
-		frmAirline.getContentPane().add(Verification);
 
 	}
         
-        //Methods
-        public void Permit(){
-            
+
+    //Getters
+    public JDateChooser getDepartureDate(){return DepartureDate;}
+    
+    public JDateChooser getArrivalDate() {return ArrivalDate;}
+
+    public JFrame getFrmAirline() {return frmAirline;}
+    
+    //Methods
+    public void show(boolean bool){
+        AdminWindow window = new AdminWindow();
+        window.frmAirline.setVisible(bool);
+    }
+    
+    private void Reset(){
+        tfAirline.setText("");
+        tfFlightID.setText("");
+        tfDeparture.setText("");
+        tfArrival.setText("");
+        tfTicketPrice.setText("");
+        tfStatus.setText("");
+        tfSeats.setText("");
+        DepartureDate.setCalendar(null);
+        ArrivalDate.setCalendar(null);
+        
+    }
+    
+    private void display(){
+        String data[] = {"-Airline-","-Departure Time-","-Departure-","-Arrival-"};
+        tbl = (DefaultTableModel) FlightTable.getModel();
+        tbl.addRow(data);
+    }
+    
+    public void displayFlight(){
+        flight = conn.displayFlights();
+        for(Flight c: flight){
+            String data[] = {c.getAirline(),c.getDateofDeparture(),c.getDeparture(),c.getArrival()};
+            tbl = (DefaultTableModel) FlightTable.getModel();
+            tbl.addRow(data);
         }
-        public void AddFlight(){
-            int Price = Integer.parseInt(JTF_TicketPrice.getText());
-            //Flight flight = new Flight(JTF_Airline.getText(),JTF_FlightID.getText(),JTF_Departure.getText(),JTF_Arrival.getText(),Price,JTF_SeatsAvailable.getText());
+    }
+        
+    public void AddFlight(){
+        int Price = Integer.parseInt(tfTicketPrice.getText());
+        int Seats = Integer.parseInt(tfSeats.getText());
+        
+        String dateDeparture = getDate(DepartureDate);
+        String dateArrival = getDate(ArrivalDate);
+        
+            Flight flight = new Flight(tfAirline.getText(), tfFlightID.getText(), tfDeparture.getText(), tfArrival.getText(),Price,tfStatus.getText(),Seats,dateDeparture,dateArrival);
+            if(conn.AddFlight(flight))
+                JOptionPane.showMessageDialog(this.frmAirline, "New record added");
+            else
+                JOptionPane.showMessageDialog(this.frmAirline, "Flight already exsist");
+    
+            displayFlight();
+    
+    }
+    
+    public void FlightTableMouseClicked(MouseEvent evt){
+        int choice = JOptionPane.showConfirmDialog(null, "Do you wanna DELETE flight", "Warning", JOptionPane.YES_NO_OPTION);
+        
+        int index = FlightTable.getSelectedRow();
+        String airline = (String) FlightTable.getValueAt(index, 0);
+        
+        if(choice == JOptionPane.YES_OPTION){
+            conn.DeleteFlight(airline);
+        } else {
+            JOptionPane.showMessageDialog(null, "Skip");
         }
+    }
+    
+    public int getDay(JDateChooser Date){
+        int day = 0;
+        
+        SimpleDateFormat dFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String date = dFormat.format(Date.getDate());
+        LocalDate DepartureDay = LocalDate.parse(date);
+        day = DepartureDay.getDayOfMonth();
+        
+        return day;
+    }
+    
+    public String getDate(JDateChooser date){
+        String setDate;
+        SimpleDateFormat dFormat = new SimpleDateFormat("yyyy-MM-dd");
+        setDate = dFormat.format(date.getDate());
+        return setDate;
+    }
+    
 }

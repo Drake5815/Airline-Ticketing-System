@@ -25,8 +25,12 @@ public class LoginWindow {
 	private Border emptyBorder = BorderFactory.createEmptyBorder();
 	private JPasswordField jPassword;
         
+        private AdminWindow aw;
+        
         Connect conn;
-	/**
+	
+        private ResetPass rp;
+        /**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
@@ -143,7 +147,12 @@ public class LoginWindow {
 		JButton btnForgotPassword = new JButton("Forgot password");
 		btnForgotPassword.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+				if(jUsername.getText().equals("")) {
+                                    JOptionPane.showMessageDialog(null, "Please put your username");
+                                } else {
+                                    ForgotPassword(jUsername.getText());
+                                    
+                                }
 			}
 		});
 		btnForgotPassword.setBorder(emptyBorder);
@@ -179,19 +188,26 @@ public class LoginWindow {
 	}
         
         public void Login(){
-            int result = conn.login(jUsername.getText(),jPassword.getText());
+                int result = conn.login(jUsername.getText(),jPassword.getText());
             switch (result){
+                case 0:
+                    JOptionPane.showMessageDialog(this.frmAirlineTransportationTicketing, "Incorrect username/password.");
+                    break;
                 case 1:
                     System.out.println("System Right on track");
                     break;
                 case 2:
-                    JOptionPane.showMessageDialog(this.frmAirlineTransportationTicketing, "Incorrect username/password.");
+                    aw = new AdminWindow();
+                    aw.show(true);
+                    System.out.println("System Right on track");
+                    frmAirlineTransportationTicketing.setVisible(false);
                     break;
                 default:
                     break;
             }
         }
-        public void ForgotPassword(){
-            
+        public void ForgotPassword(String username){
+            rp = new ResetPass(username);
+            rp.show(true);
         }
 }
